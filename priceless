@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body {
+  margin: 0;
+  background: #0f0f10;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.header {
+  text-align: center;
+  padding: 35px;
+  font-size: 52px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-bottom: 2px solid #c89b3c;
+}
+
+.slide {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  padding: 40px;
+}
+
+.beer {
+  background: #17181b;
+  padding: 22px;
+  border-left: 5px solid #c89b3c;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.03);
+}
+
+.name {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.price {
+  float: right;
+  color: #c89b3c;
+  font-weight: 600;
+}
+
+.abv {
+  margin-top: 6px;
+  font-size: 14px;
+  opacity: 0.75;
+  letter-spacing: 1px;
+}
+
+/* smooth fade between slides */
+.fade {
+  animation: fade 0.5s ease;
+}
+
+@keyframes fade {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">Beer Menu</div>
+<div id="app"></div>
+
+<script>
+
+const sheetURL = "PASTE_YOUR_CSV_LINK_HERE";
+
+let slides = [];
+let current = 0;
+
+function chunkArray(arr, size) {
+  let result = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, i + size));
+  }
+  return result;
+}
+
+async function loadData() {
+
+  const res = await fetch(sheetURL);
+  const text = await res.text();
+
+  const rows = text.trim().split("\n").map(r => r.split(","));
+  const data = rows.slice(1);
+
+  slides = chunkArray(data, 6);
+
+  renderSlide(0);
+}
+
+function renderSlide(index) {
+
+  const slide = slides[index];
+
+  let html = '<div class="slide fade">';
+
+  slide.forEach(r => {
+
+    html += `
+      <div class="beer">
+        <div class="name">
+          ${r[0]}
+          <span class="price">£${r[1]}</span>
+        </div>
+        <div class="abv">${r[2]}% ABV</div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+
+  document.getElementById("app").innerHTML = html;
+}
+
+function startCarousel() {
+  setInterval(() => {
+    current = (current + 1) % slides.length;
+    renderSlide(current);
+  }, 6000);
+}
+
+loadData().then(startCarousel);
+setInterval(loadData, 30000);
+
+</script>
+
+</body>
+</html>
